@@ -73,13 +73,5 @@ These four notebooks correspond exactly to the experimental configurations in th
 2.  **Retriever:** Uses a dual-stage search (Embedding + Re-ranking) to fetch precise formulas from a knowledge base of 555 structured entries.
 3.  **Solver:** Generates calculation steps constrained strictly by the retrieved context.
 4.  **Critic:** Reviews the solution for unit consistency and logic, triggering re-retrieval if the score is low.
+<img width="1833" height="728" alt="image" src="https://github.com/user-attachments/assets/d4cf6c64-c8ef-4e3c-b273-73b08e37350a" />
 
-## Case Study: Roller-Compacted Concrete Dam
-
-In Problem 48, the system was required to select 3 core formulas from a retrieval pool that returned 8 candidates (62.5% redundancy). Despite the noise, the semantic re-ranker successfully promoted the correct formulas to the top:
-
-1.  **Statistical assessment:** $F(X) = \bar{X}(1 - t C_v)$
-2.  **Load combination:** $S_d = \gamma_G S_{Gk} + \gamma_Q(\psi_1 S_{Q1k} + \psi_2 S_{Q2k})$
-3.  **Stress verification:** $\sigma_{\text{max}} \leq f_{ck}/\gamma_m$
-
-This demonstrates the robustness of the framework even when retrieval precision is imperfect.
