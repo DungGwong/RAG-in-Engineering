@@ -1,4 +1,3 @@
-# RAG-in-Engineering
 # Multi-Agent RAG Framework for Complex Engineering Calculations
 
 This repository contains the implementation of a Cross-Lingual Multi-Agent Retrieval-Augmented Generation (RAG) framework designed for solving complex calculation problems in electrical engineering. The project addresses specific challenges Large Language Models (LLMs) face with domain-specific formulas, such as hallucinations and logical drift in multi-step reasoning.
