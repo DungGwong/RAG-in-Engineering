@@ -1,146 +1,85 @@
 # RAG-in-Engineering
-This repository contains the implementation of a Cross-Lingual Multi-Agent Retrieval-Augmented Generation (RAG) framework designed for solving complex calculation problems in electrical engineering. The project addresses the specific challenges LLMs face with domain-specific formulas, such as hallucinations and logical drift in multi-step reasoning.
+# Multi-Agent RAG Framework for Complex Engineering Calculations
 
-Project Overview
+This repository contains the implementation of a Cross-Lingual Multi-Agent Retrieval-Augmented Generation (RAG) framework designed for solving complex calculation problems in electrical engineering. The project addresses specific challenges Large Language Models (LLMs) face with domain-specific formulas, such as hallucinations and logical drift in multi-step reasoning.
 
-Large Language Models often struggle with engineering tasks because they fail to accurately recall physical formulas or maintain logical consistency across derivations. This project introduces a "Plan-Execute-Review" architecture that mimics human problem-solving to ensure reliability.
+## Project Overview
 
-The system decomposes complex problems into sub-tasks, performs targeted retrieval for each step using a dual-stage search (Embedding + Re-ranking), and employs a Critic agent for self-verification.
+Traditional RAG pipelines often fail in engineering contexts because they retrieve context only once for the entire query. This project introduces a "Plan-Execute-Review" architecture that mimics human problem-solving:
 
-Key Results
+1.  **Decomposition:** Breaking complex problems into linear sub-tasks.
+2.  **Targeted Retrieval:** Performing granular, task-oriented search for each step.
+3.  **Self-Verification:** Employing a Critic agent to ensure logical consistency and unit correctness.
 
-The framework was evaluated on a dataset of 300 electrical engineering problems. The full configuration (Standard) significantly outperformed all baselines:
+By leveraging cross-lingual processing (Chinese input, English reasoning), the system utilizes the stronger logical capabilities of LLMs like GPT-4o while remaining accessible to Chinese-speaking users.
 
-Configuration
+## Experimental Results
 
-	
+The framework was evaluated on a dataset of **300 electrical engineering problems**. The full configuration (**Standard**) significantly outperformed all baselines across Recall, Precision, and F1 Score.
 
-Recall (%)
+### Main Results
 
-	
+| Configuration | Recall (%) | Precision (%) | F1 Score |
+| :--- | :---: | :---: | :---: |
+| Monolingual Chinese (`Chi`) | 60.87 | 55.27 | 0.5567 |
+| No Agent Loop (`noAgent`) | 59.00 | 47.49 | 0.5019 |
+| No GPT Re-rank (`noGPT`) | 55.07 | 46.74 | 0.4735 |
+| **Full Framework (`Standard`)** | **72.96** | **60.49** | **0.6356** |
 
-Precision (%)
+### Error Analysis
 
-	
+| Configuration | Miss Rate (%) | Redundancy Rate (%) |
+| :--- | :---: | :---: |
+| Monolingual Chinese (`Chi`) | 39.13 | 44.73 |
+| No Agent Loop (`noAgent`) | 41.00 | 52.51 |
+| No GPT Re-rank (`noGPT`) | 44.93 | 53.26 |
+| **Full Framework (`Standard`)** | **27.04** | **39.51** |
 
-F1 Score
+## Ablation Study Insights
 
+Based on the experimental results, we observed the following contributions of each component:
 
+*   **Semantic Re-ranking (Most Critical):** Removing the GPT-based re-ranker caused the largest drop in performance (F1: 0.6356 → 0.4735). Vector similarity alone is insufficient for engineering formulas that share similar keywords but differ in applicability conditions.
+*   **Agent Loop (Error Recovery):** The self-correction mechanism provided a significant boost (F1: 0.5019 → 0.6356), allowing the system to recover from incorrect formula applications.
+*   **Cross-Lingual Processing:** Using English as an intermediate reasoning language improved performance by 7.89% in Recall compared to the Chinese-only version.
 
+## Repository Structure
 
-Monolingual Chinese (Chi)
+The repository is organized into datasets and experimental notebooks used for the ablation studies.
 
-	
+### Datasets
+*   `EE_Question/`: Source data for the engineering problems.
+*   `jsons_EE_Chi/`: Structured JSON data for Chinese-language engineering problems.
+*   `jsons_EE_Eng/`: Structured JSON data for English-language engineering problems (used for intermediate reasoning).
 
-60.87
+### Experimental Notebooks
+These four notebooks correspond exactly to the experimental configurations in the paper:
 
-	
+*   `Multi_Search_Eng_Standard.ipynb`
+    *   **Description:** The complete framework. Includes Chinese-to-English translation, problem decomposition, GPT-4o based semantic re-ranking, and the multi-agent self-correction loop.
 
-55.27
+*   `Multi_Search_Eng_noAgent.ipynb`
+    *   **Description:** Ablation study removing the agent loop. This runs the pipeline only once (Plan → Retrieve → Solve → Output) without self-verification.
 
-	
+*   `Multi_Search_Eng_noGPT.ipynb`
+    *   **Description:** Ablation study removing the LLM-based re-ranker. It relies solely on vector embedding similarity (Top-1 selection).
 
-0.5567
+*   `Multi_Search_Chi.ipynb`
+    *   **Description:** Comparison baseline running entirely in Chinese using DeepSeek-V3.
 
+## Methodology Summary
 
+1.  **Planner:** Decomposes the query into dependent sub-problems using Chain-of-Thought (CoT).
+2.  **Retriever:** Uses a dual-stage search (Embedding + Re-ranking) to fetch precise formulas from a knowledge base of 555 structured entries.
+3.  **Solver:** Generates calculation steps constrained strictly by the retrieved context.
+4.  **Critic:** Reviews the solution for unit consistency and logic, triggering re-retrieval if the score is low.
 
+## Case Study: Roller-Compacted Concrete Dam
 
-No Agent Loop (noAgent)
+In Problem 48, the system was required to select 3 core formulas from a retrieval pool that returned 8 candidates (62.5% redundancy). Despite the noise, the semantic re-ranker successfully promoted the correct formulas to the top:
 
-	
+1.  **Statistical assessment:** $F(X) = \bar{X}(1 - t C_v)$
+2.  **Load combination:** $S_d = \gamma_G S_{Gk} + \gamma_Q(\psi_1 S_{Q1k} + \psi_2 S_{Q2k})$
+3.  **Stress verification:** $\sigma_{\text{max}} \leq f_{ck}/\gamma_m$
 
-59.00
-
-	
-
-47.49
-
-	
-
-0.5019
-
-
-
-
-No GPT Re-rank (noGPT)
-
-	
-
-55.07
-
-	
-
-46.74
-
-	
-
-0.4735
-
-
-
-
-Full Framework (Standard)​
-
-	
-
-72.96​
-
-	
-
-60.49​
-
-	
-
-0.6356​
-
-Component Analysis
-
-Semantic Re-ranking:​ The most critical component, improving the F1 score by 0.1621​ over vector-only retrieval. It effectively filters formulas that look similar but have different applicability conditions.
-
-Agent Loop:​ Provided a 0.1337​ F1 improvement through error recovery and self-correction.
-
-Cross-Lingual Processing:​ Using English as an intermediate reasoning language yielded a 0.0789​ F1 boost compared to the monolingual Chinese setting.
-
-Repository Structure
-
-The repository is organized into datasets and experimental notebooks used for ablation studies.
-
-Datasets
-
-EE_Question/: Contains the source data for the engineering problems.
-
-jsons_EE_Chi/: Structured JSON data for Chinese-language engineering problems.
-
-jsons_EE_Eng/: Structured JSON data for English-language engineering problems (used for intermediate reasoning).
-
-Experimental Notebooks (Ablation Studies)
-
-These four notebooks correspond to the experimental configurations described in the paper. They are used to reproduce the results in the ablation study table above.
-
-Multi_Search_Eng_Standard.ipynb
-
-Description:​ The complete framework. Includes Chinese-to-English translation, problem decomposition, GPT-4o based semantic re-ranking, and the multi-agent self-correction loop.
-
-Multi_Search_Eng_noAgent.ipynb
-
-Description:​ Ablation study removing the agent loop. This runs the pipeline only once (Plan →Retrieve →Solve →Output) without self-verification or re-retrieval.
-
-Multi_Search_Eng_noGPT.ipynb
-
-Description:​ Ablation study removing the LLM-based re-ranker. After retrieving the top-3 candidates by embedding similarity, it directly selects the top-1 result without semantic refinement.
-
-Multi_Search_Chi.ipynb
-
-Description:​ Comparison baseline running entirely in Chinese. Uses DeepSeek-V3 to ensure a fair comparison against the English-centric configurations.
-
-Methodology Summary
-
-Input Processing:​ Translates the Chinese query into English to leverage superior LLM reasoning capabilities.
-
-Planning:​ Decomposes the problem into a sequence of dependent sub-problems using Chain-of-Thought (CoT).
-
-Retrieval:​ Performs granular, task-oriented search using a structured formula knowledge base (555 entries).
-
-Solving:​ Executes calculations constrained strictly by the retrieved context.
-
-Critic:​ Reviews the solution for unit consistency and logical errors, triggering a self-correction loop if necessary.
+This demonstrates the robustness of the framework even when retrieval precision is imperfect.
